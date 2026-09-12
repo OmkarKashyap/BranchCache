@@ -64,6 +64,21 @@ def test_loop_stops_on_final_non_tool_answer(sandbox):
     assert result.messages[-1]["content"] == "I give up."
 
 
+def test_loop_gives_tool_call_and_result_matching_ids(sandbox):
+    node = RolloutNode(branch_id=0, messages=[{"role": "system", "content": "sys"}])
+    client = FakeLLMClient(
+        [
+            LLMResponse(tool_call={"name": "list_files", "args": {}}),
+            LLMResponse(content="done"),
+        ]
+    )
+
+    result = run_react_loop(node, sandbox, client, max_steps=5)
+
+    call_msg, tool_msg = result.messages[1], result.messages[2]
+    assert call_msg["tool_call"]["id"] == tool_msg["tool_call_id"]
+
+
 def test_loop_records_tool_time_on_node(sandbox):
     node = RolloutNode(branch_id=0, messages=[{"role": "system", "content": "sys"}])
     client = FakeLLMClient(

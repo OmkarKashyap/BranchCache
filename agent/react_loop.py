@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 from typing import Protocol
 
@@ -46,12 +47,19 @@ def run_react_loop(
 
         name = response.tool_call["name"]
         args = response.tool_call.get("args", {})
+        call_id = response.tool_call.get("id") or uuid.uuid4().hex[:12]
         node.messages.append(
-            {"role": "assistant", "content": None, "tool_call": {"name": name, "args": args}}
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_call": {"id": call_id, "name": name, "args": args},
+            }
         )
 
         result = dispatch_tool(node, workdir, name, args)
-        node.messages.append({"role": "tool", "name": name, "content": str(result)})
+        node.messages.append(
+            {"role": "tool", "tool_call_id": call_id, "name": name, "content": str(result)}
+        )
 
         if name == "run_tests" and isinstance(result, dict) and result.get("passed"):
             node.test_result = result

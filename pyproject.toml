@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=2.0",
     "matplotlib>=3.8",
     "openai>=1.30",
+    "requests>=2.31",
 ]
 
 # GPU-only deps: installed on Colab/Kaggle for serving benchmarks, never in CPU CI.
