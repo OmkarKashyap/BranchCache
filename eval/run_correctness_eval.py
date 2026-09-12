@@ -8,7 +8,7 @@ from agent.verifier import verify
 from eval.golden_dataset import GOLDEN_DATASET
 
 
-def run_branch(problem, llm_client, max_steps=10):
+def run_branch(problem, llm_client, max_steps=10, prefix=None):
     with tempfile.TemporaryDirectory(prefix=f"bc_{problem.problem_id}_") as tmp:
         workdir = Path(tmp)
         (workdir / problem.buggy_file_path).write_text(problem.buggy_file_content)
@@ -17,7 +17,7 @@ def run_branch(problem, llm_client, max_steps=10):
             for name, content in problem.repo_context.items():
                 (workdir / name).write_text(content)
 
-        node = fork(build_prefix(problem, "medium"), 1)[0]
+        node = fork(prefix or build_prefix(problem, "medium"), 1)[0]
         node = run_react_loop(node, workdir, llm_client, max_steps=max_steps)
         if node.test_result is None:
             verify(node, workdir, "test_solution.py")
